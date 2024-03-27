@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -17,6 +20,11 @@ const (
 	awsAccessKeyID = "your-access-key-id"
 	awsSecretKey   = "your-secret-key"
 	s3Bucket       = "your-s3-bucket-name"
+)
+
+const (
+	// 10 MB max file size
+	MAX_FILE_SIZE = 10 << 20
 )
 
 // HTML form template
@@ -43,12 +51,52 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler for uploading file to S3
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the multipart form
+	err := r.ParseMultipartForm(MAX_FILE_SIZE)
+	if err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve the file from the form data
 	file, handler, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Failed to retrieve file from form", http.StatusBadRequest)
+		http.Error(w, "Failed to retrieve file", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
+
+	// Check file size
+	if handler.Size > MAX_FILE_SIZE {
+		http.Error(w, "File size exceeds the limit", http.StatusBadRequest)
+		return
+	}
+
+	// Check file extension
+	extension := filepath.Ext(handler.Filename)
+	if extension != ".png" && extension != ".jpg" {
+		http.Error(w, "File extension not allowed", http.StatusBadRequest)
+		return
+	}
+
+	// Create a new file in the server's temporary directory
+	tempFile, err := os.CreateTemp("", "upload-*")
+	if err != nil {
+		http.Error(w, "Unable to create temporary file", http.StatusInternalServerError)
+		return
+	}
+	defer tempFile.Close()
+
+	// Copy the file content to the temporary file
+	_, err = io.Copy(tempFile, file)
+	if err != nil {
+		http.Error(w, "Unable to copy file content", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond to the client indicating successful upload
+	fmt.Fprintf(w, "File %s uploaded successfully as %s", handler.Filename, tempFile.Name())
+	return
 
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
