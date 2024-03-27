@@ -51,5 +51,5 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 // only called once
 func init() {
 	gotenv.Load()
-	// fmt.Println(os.Environ())
+	fmt.Println("Loaded env vars")
 }
