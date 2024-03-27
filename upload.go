@@ -82,7 +82,7 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 		return
 	}
 
-	fmt.Fprintf(w, "File uploaded successfully!")
+	fmt.Fprint(w, "File uploaded successfully!")
 }
 
 // Handler for uploading file to S3
@@ -130,14 +130,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond to the client indicating successful upload
-	// fmt.Fprintf(w, "File %s uploaded successfully as %s", handler.Filename, tempFile.Name())
+	// Status up to this point
+	statusMsg := fmt.Sprintf("File %s saved locally as: %s", handler.Filename, tempFile.Name())
 
+	// Continue to S3 upload
 	use_s3 := r.FormValue("s3")
 	if use_s3 == "on" {
-		prevMsg := fmt.Sprintf("File %s saved locally as: %s", handler.Filename, tempFile.Name())
-		putToS3(w, file, handler, prevMsg)
+		putToS3(w, file, handler, statusMsg)
+		return
 	}
+
+	fmt.Fprint(w, statusMsg)
 }
 
 func main() {
