@@ -14,14 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-)
-
-// Replace these with your AWS credentials and S3 bucket information
-const (
-	awsRegion      = "your-aws-region"
-	awsAccessKeyID = "your-access-key-id"
-	awsSecretKey   = "your-secret-key"
-	s3Bucket       = "your-s3-bucket-name"
+	"github.com/subosito/gotenv"
 )
 
 const (
@@ -30,6 +23,10 @@ const (
 )
 
 var (
+	awsRegion          = os.Getenv("AWS_REGION")
+	awsAccessKeyID     = os.Getenv("AWS_KEY_ID")
+	awsSecretKey       = os.Getenv("AWS_SECRET")
+	s3Bucket           = os.Getenv("AWS_BUCKET")
 	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg"}
 )
 
@@ -141,6 +138,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, statusMsg)
+}
+
+// only called once
+func init() {
+	gotenv.Load()
+	// fmt.Println(os.Environ())
 }
 
 func main() {
