@@ -102,6 +102,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Printf("Using env vars: %s, %s\n", awsRegion, awsAccessKeyID)
 	http.HandleFunc("/", formHandler)
 	http.HandleFunc("/upload", uploadHandler)
 	fmt.Println("Server started on port 8080")

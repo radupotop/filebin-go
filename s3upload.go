@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	awsRegion      = os.Getenv("AWS_REGION")
-	awsAccessKeyID = os.Getenv("AWS_KEY_ID")
-	awsSecretKey   = os.Getenv("AWS_SECRET")
-	s3Bucket       = os.Getenv("AWS_BUCKET")
+	awsRegion      string
+	awsAccessKeyID string
+	awsSecretKey   string
+	s3Bucket       string
 )
 
 // Upload to S3 bucket
@@ -51,5 +51,9 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 // only called once
 func init() {
 	gotenv.Load()
-	fmt.Println("Loaded env vars")
+	fmt.Println("Loading env vars")
+	awsRegion = os.Getenv("AWS_REGION")
+	awsAccessKeyID = os.Getenv("AWS_KEY_ID")
+	awsSecretKey = os.Getenv("AWS_SECRET")
+	s3Bucket = os.Getenv("AWS_BUCKET")
 }
