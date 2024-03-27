@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -42,6 +43,8 @@ const formHTML = `
 <body>
 	<form action="/upload" method="post" enctype="multipart/form-data">
 		<input type="file" name="file">
+		<input type="checkbox" id="s3" name="s3" checked>
+		<label for="s3">Upload to S3</label>
 		<input type="submit" value="Upload">
 	</form>
 </body>
@@ -52,6 +55,34 @@ const formHTML = `
 func formHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.New("form").Parse(formHTML))
 	tmpl.Execute(w, nil)
+}
+
+// Upload to S3 bucket
+func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.FileHeader, prevMsg string) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String(awsRegion),
+		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretKey, ""),
+	})
+	if err != nil {
+		http.Error(w, "Failed to create AWS session", http.StatusInternalServerError)
+		return
+	}
+
+	svc := s3.New(sess)
+
+	// Upload file to S3 bucket
+	_, err = svc.PutObject(&s3.PutObjectInput{
+		Bucket: aws.String(s3Bucket),
+		Key:    aws.String(handler.Filename),
+		Body:   file,
+		ACL:    aws.String("public-read"),
+	})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%s\nFailed to upload file to S3 bucket", prevMsg), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "File uploaded successfully!")
 }
 
 // Handler for uploading file to S3
@@ -100,33 +131,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Respond to the client indicating successful upload
-	fmt.Fprintf(w, "File %s uploaded successfully as %s", handler.Filename, tempFile.Name())
-	return
+	// fmt.Fprintf(w, "File %s uploaded successfully as %s", handler.Filename, tempFile.Name())
 
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(awsRegion),
-		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretKey, ""),
-	})
-	if err != nil {
-		http.Error(w, "Failed to create AWS session", http.StatusInternalServerError)
-		return
+	use_s3 := r.FormValue("s3")
+	if use_s3 == "on" {
+		prevMsg := fmt.Sprintf("File %s saved locally as: %s", handler.Filename, tempFile.Name())
+		putToS3(w, file, handler, prevMsg)
 	}
-
-	svc := s3.New(sess)
-
-	// Upload file to S3 bucket
-	_, err = svc.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(s3Bucket),
-		Key:    aws.String(handler.Filename),
-		Body:   file,
-		ACL:    aws.String("public-read"),
-	})
-	if err != nil {
-		http.Error(w, "Failed to upload file to S3", http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintf(w, "File uploaded successfully!")
 }
 
 func main() {
