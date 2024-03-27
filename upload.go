@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -25,6 +26,10 @@ const (
 const (
 	// 10 MB max file size
 	MAX_FILE_SIZE = 10 << 20
+)
+
+var (
+	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg"}
 )
 
 // HTML form template
@@ -74,8 +79,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check file extension
 	extension := filepath.Ext(handler.Filename)
-	if extension != ".png" && extension != ".jpg" {
-		http.Error(w, "File extension not allowed", http.StatusBadRequest)
+	if !slices.Contains(ALLOWED_EXTENSIONS, extension) {
+		http.Error(w, fmt.Sprintf("File extension not allowed %s", extension), http.StatusBadRequest)
 		return
 	}
 
