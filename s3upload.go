@@ -50,7 +50,7 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 
 // only called once
 func init() {
-	gotenv.Load()
+	gotenv.Must(gotenv.Load)
 	fmt.Println("Loading env vars")
 	awsRegion = os.Getenv("AWS_REGION")
 	awsAccessKeyID = os.Getenv("AWS_KEY_ID")
