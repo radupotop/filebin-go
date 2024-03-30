@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -11,12 +12,13 @@ import (
 )
 
 const (
-	// 10 MB max file size
-	MAX_FILE_SIZE = 10 << 20
+	// 320 KiB max file size
+	MAX_FILE_SIZE = 10 << 15
 )
 
 var (
 	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg"}
+	FILE_SIZE_UNIT     = math.Pow(1024, 2) // MiB
 )
 
 // HTML form template
@@ -48,57 +50,76 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form
 	err := r.ParseMultipartForm(MAX_FILE_SIZE)
 	if err != nil {
-		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		resp := Response{Message: "Unable to parse form", Status: http.StatusBadRequest}
+		resp.returnJson(w)
 		return
 	}
 
 	// Retrieve the file from the form data
 	file, handler, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Failed to retrieve file", http.StatusBadRequest)
+		resp := Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
+		resp.returnJson(w)
 		return
 	}
-	defer file.Close()
 
 	// Check file size
 	if handler.Size > MAX_FILE_SIZE {
-		http.Error(w, "File size exceeds the limit", http.StatusBadRequest)
+		resp := Response{
+			Message: "File size exceeds the limit",
+			Context: fmt.Sprintf("Max file size must be: %.2f MiB", MAX_FILE_SIZE/FILE_SIZE_UNIT),
+			Status:  http.StatusBadRequest,
+		}
+		resp.returnJson(w)
 		return
 	}
 
 	// Check file extension
 	extension := filepath.Ext(handler.Filename)
 	if !slices.Contains(ALLOWED_EXTENSIONS, extension) {
-		http.Error(w, fmt.Sprintf("File extension not allowed %s", extension), http.StatusBadRequest)
+		resp := Response{
+			Message: "File extension not allowed",
+			Context: fmt.Sprintf("Must be one of %s", ALLOWED_EXTENSIONS),
+			Status:  http.StatusBadRequest,
+		}
+		resp.returnJson(w)
 		return
 	}
 
 	// Create a new file in the server's temporary directory
 	tempFile, err := os.CreateTemp("", "upload-*")
 	if err != nil {
-		http.Error(w, "Unable to create temporary file", http.StatusInternalServerError)
+		resp := Response{Message: "Unable to create temporary file", Status: http.StatusInternalServerError}
+		resp.returnJson(w)
 		return
 	}
+
+	defer file.Close()
 	defer tempFile.Close()
 
 	// Copy the file content to the temporary file
 	_, err = io.Copy(tempFile, file)
 	if err != nil {
-		http.Error(w, "Unable to copy file content", http.StatusInternalServerError)
+		resp := Response{Message: "Unable to copy file content", Status: http.StatusInternalServerError}
+		resp.returnJson(w)
 		return
 	}
-
-	// Status up to this point
-	statusMsg := fmt.Sprintf("File %s saved locally as: %s", handler.Filename, tempFile.Name())
 
 	// Continue to S3 upload
 	use_s3 := r.FormValue("s3")
 	if use_s3 == "on" {
+		// Status up to this point
+		statusMsg := fmt.Sprintf("File %s saved locally as: %s", handler.Filename, tempFile.Name())
 		putToS3(w, file, handler, statusMsg)
 		return
 	}
 
-	fmt.Fprint(w, statusMsg)
+	resp := Response{
+		Message: "File saved locally",
+		Context: tempFile.Name(),
+		Status:  http.StatusCreated,
+	}
+	resp.returnJson(w)
 }
 
 func main() {
