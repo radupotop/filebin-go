@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -51,9 +52,10 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 // only called once
 func init() {
 	gotenv.Must(gotenv.Load)
-	fmt.Println("Loading env vars")
+	log.Println("Loading env vars")
 	awsRegion = os.Getenv("AWS_REGION")
 	awsAccessKeyID = os.Getenv("AWS_KEY_ID")
 	awsSecretKey = os.Getenv("AWS_SECRET")
 	s3Bucket = os.Getenv("AWS_BUCKET")
+	log.Printf("Using env vars: %s, %s, %s\n", awsRegion, awsAccessKeyID, s3Bucket)
 }

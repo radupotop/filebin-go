@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"os"
@@ -24,9 +25,10 @@ var (
 func readFile(tplFile string) (string, error) {
 	content, err := os.ReadFile(tplFile)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		log.Println("Error reading file:", err)
 		return "", err
 	}
+	log.Printf("Using template file: %s\n", tplFile)
 	// Return the file content as a string
 	return string(content), nil
 }
@@ -116,9 +118,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fmt.Printf("Using env vars: %s, %s\n", awsRegion, awsAccessKeyID)
 	http.HandleFunc("/", formHandler)
 	http.HandleFunc("/upload", uploadHandler)
-	fmt.Println("Server started on port 8080")
+	log.Println("Server started on port 8080")
 	http.ListenAndServe(":8080", nil)
 }

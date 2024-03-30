@@ -13,7 +13,7 @@ type Response struct {
 
 // Return JSON response
 func (r Response) returnJson(w http.ResponseWriter) {
-	// Set the Content-Type header to application/json
+	// Set the Content-Type header and the HTTP status code
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(r.Status)
 	// Marshall struct to JSON
