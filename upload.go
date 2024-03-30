@@ -68,7 +68,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		resp := Response{
 			Message: "File size exceeds the limit",
 			Context: fmt.Sprintf("Max file size must be: %.2f MiB", MAX_FILE_SIZE/FILE_SIZE_UNIT),
-			Status:  http.StatusBadRequest,
+			Status:  http.StatusRequestEntityTooLarge,
 		}
 		resp.returnJson(w)
 		return
@@ -80,7 +80,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		resp := Response{
 			Message: "File extension not allowed",
 			Context: fmt.Sprintf("Must be one of %s", ALLOWED_EXTENSIONS),
-			Status:  http.StatusBadRequest,
+			Status:  http.StatusUnsupportedMediaType,
 		}
 		resp.returnJson(w)
 		return
