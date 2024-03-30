@@ -21,26 +21,19 @@ var (
 	FILE_SIZE_UNIT     = math.Pow(1024, 2) // MiB
 )
 
-// HTML form template
-const formHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Upload File to S3</title>
-</head>
-<body>
-	<form action="/upload" method="post" enctype="multipart/form-data">
-		<input type="file" name="file">
-		<input type="checkbox" id="s3" name="s3" checked>
-		<label for="s3">Upload to S3</label>
-		<input type="submit" value="Upload">
-	</form>
-</body>
-</html>
-`
+func readFile(tplFile string) (string, error) {
+	content, err := os.ReadFile(tplFile)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return "", err
+	}
+	// Return the file content as a string
+	return string(content), nil
+}
 
 // Handler for rendering the HTML form
 func formHandler(w http.ResponseWriter, r *http.Request) {
+	formHTML, _ := readFile("template.html")
 	tmpl := template.Must(template.New("form").Parse(formHTML))
 	tmpl.Execute(w, nil)
 }
