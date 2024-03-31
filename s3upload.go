@@ -57,5 +57,5 @@ func init() {
 	awsAccessKeyID = os.Getenv("AWS_KEY_ID")
 	awsSecretKey = os.Getenv("AWS_SECRET")
 	s3Bucket = os.Getenv("AWS_BUCKET")
-	log.Println("Using env vars:", awsRegion, awsAccessKeyID, s3Bucket)
+	log.Println("Using env vars:", [3]string{awsRegion, awsAccessKeyID, s3Bucket})
 }
