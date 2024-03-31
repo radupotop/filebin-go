@@ -5,33 +5,9 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"math"
 	"net/http"
 	"os"
-	"path/filepath"
-	"slices"
 )
-
-const (
-	// 320 KiB max file size
-	MAX_FILE_SIZE = 10 << 15
-)
-
-var (
-	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg"}
-	FILE_SIZE_UNIT     = math.Pow(1024, 2) // MiB
-)
-
-func readFile(tplFile string) (string, error) {
-	content, err := os.ReadFile(tplFile)
-	if err != nil {
-		log.Println("Error reading file:", err)
-		return "", err
-	}
-	log.Printf("Using template file: %s\n", tplFile)
-	// Return the file content as a string
-	return string(content), nil
-}
 
 // Handler for rendering the HTML form
 func formHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,34 +28,16 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve the file from the form data
 	file, handler, err := r.FormFile("file")
+	// files := r.MultipartForm.File["file"]
+	// fmt.Println(files)
+
 	if err != nil {
 		resp := Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
 		resp.returnJson(w)
 		return
 	}
 
-	// Check file size
-	if handler.Size > MAX_FILE_SIZE {
-		resp := Response{
-			Message: "File size exceeds the limit",
-			Context: fmt.Sprintf("Max file size must be: %.2f MiB", MAX_FILE_SIZE/FILE_SIZE_UNIT),
-			Status:  http.StatusRequestEntityTooLarge,
-		}
-		resp.returnJson(w)
-		return
-	}
-
-	// Check file extension
-	extension := filepath.Ext(handler.Filename)
-	if !slices.Contains(ALLOWED_EXTENSIONS, extension) {
-		resp := Response{
-			Message: "File extension not allowed",
-			Context: fmt.Sprintf("Must be one of %s", ALLOWED_EXTENSIONS),
-			Status:  http.StatusUnsupportedMediaType,
-		}
-		resp.returnJson(w)
-		return
-	}
+	checkFile(w, handler)
 
 	// Create a new file in the server's temporary directory
 	tempFile, err := os.CreateTemp("", "upload-*")
