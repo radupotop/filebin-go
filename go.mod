@@ -1,4 +1,4 @@
-module wooptoo.com/filebin
+module github.com/radupotop/filebin-go
 
 go 1.22.1
 
