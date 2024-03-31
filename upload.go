@@ -64,7 +64,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	log.Println("Results", results)
+	log.Println("Results:", results)
 
 	resp := Response{
 		Message: "Files saved locally",

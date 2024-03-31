@@ -31,7 +31,7 @@ func readFile(filename string) (string, error) {
 		log.Println("Error reading file:", err)
 		return "", err
 	}
-	log.Printf("Loaded file: %s\n", filename)
+	log.Println("Loaded file:", filename)
 	return string(content), nil
 }
 
