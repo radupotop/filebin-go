@@ -6,9 +6,9 @@ import (
 )
 
 type Response struct {
-	Message string `json:"message"`
-	Context string `json:"context"`
-	Status  int    `json:"status"`
+	Message string      `json:"message"`
+	Context interface{} `json:"context"`
+	Status  int         `json:"status"`
 }
 
 // Return JSON response
@@ -19,6 +19,27 @@ func (r Response) returnJson(w http.ResponseWriter) {
 	// Marshall struct to JSON
 	json.NewEncoder(w).Encode(r)
 }
+
+// Individual upload result
+type UpResult struct {
+	Orig string `json:"orig"`
+	Dest string `json:"dest"`
+}
+
+// // All results
+// type UploadResults struct {
+// 	Results []UpResult `json:"results"`
+// }
+
+// func (u UploadResults) add(upres UpResult) {
+// 	// u.Results := []UpResult{}
+// 	u.Results = append(u.Results, upres)
+// }
+
+// func (u UploadResults) toJson() (string, error) {
+// 	resp, err := json.Marshal(u)
+// 	return string(resp), err
+// }
 
 // // MarshalJSON implements the json.Marshaler interface for Response
 // func (r Response) MarshalJSON() ([]byte, error) {

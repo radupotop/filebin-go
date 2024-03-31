@@ -7,7 +7,7 @@
 
 <body>
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
+        <input type="file" name="files" multiple>
         <input type="checkbox" id="s3" name="s3" checked>
         <label for="s3">Upload to S3</label>
         <input type="submit" value="Upload">
