@@ -6,9 +6,10 @@ import (
 )
 
 type Response struct {
-	Message string      `json:"message"`
-	Context interface{} `json:"context"`
-	Status  int         `json:"status"`
+	Message string     `json:"message"`
+	Context []string   `json:"context"`
+	Results []UpResult `json:"results"`
+	Status  int        `json:"status"`
 }
 
 // Return JSON response
