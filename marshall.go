@@ -31,8 +31,7 @@ type UpResult struct {
 // 	Results []UpResult `json:"results"`
 // }
 
-// func (u UploadResults) add(upres UpResult) {
-// 	// u.Results := []UpResult{}
+// func (u *UploadResults) add(upres UpResult) {
 // 	u.Results = append(u.Results, upres)
 // }
 
