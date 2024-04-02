@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"math"
 	"mime/multipart"
@@ -49,7 +48,7 @@ func checkFile(handler *multipart.FileHeader) (Response, error) {
 			},
 			Status: http.StatusRequestEntityTooLarge,
 		}
-		return resp, fs.ErrInvalid
+		return resp, fmt.Errorf("file size exceeds the limit: %d bytes", MAX_FILE_SIZE)
 	}
 
 	// Check file extension
@@ -64,7 +63,7 @@ func checkFile(handler *multipart.FileHeader) (Response, error) {
 			},
 			Status: http.StatusUnsupportedMediaType,
 		}
-		return resp, fs.ErrInvalid
+		return resp, fmt.Errorf("file extension not allowed: %s", extension)
 	}
 
 	return RESP_OK, nil
