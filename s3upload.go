@@ -16,13 +16,13 @@ import (
 )
 
 const (
-	uploadACL string = "public-read"
 	uploadDir string = "img/"
 )
 
 var (
 	awsRegion   string
 	awsS3Bucket string
+	uploadACL   string
 )
 
 // Upload to S3 bucket
@@ -49,12 +49,12 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 		Bucket: aws.String(awsS3Bucket),
 		Key:    aws.String(uuidFilename),
 		Body:   multipartFile,
-		// ACL:    aws.String(uploadACL),
+		ACL:    aws.String(uploadACL),
 	})
 	if err != nil {
 		resp := Response{
 			Message: "Failed to upload file to S3 bucket",
-			Context: ResponseContext{uuidFilename, awsS3Bucket},
+			Context: ResponseContext{uuidFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
 		resp.returnJson(w)
@@ -69,8 +69,9 @@ func init() {
 	log.Println("Loading env vars")
 	awsRegion = os.Getenv("AWS_REGION")
 	awsS3Bucket = os.Getenv("AWS_BUCKET")
+	uploadACL = os.Getenv("UPLOAD_ACL")
 	// The following are read by NewEnvCredentials
-	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
-	// "AWS_SECRET_ACCESS_KEY"
-	log.Println("Using env vars:", [3]string{awsRegion, awsS3Bucket, awsAccessKeyID})
+	//   AWS_ACCESS_KEY_ID
+	//   AWS_SECRET_ACCESS_KEY
+	log.Println("Using env vars:", []string{awsRegion, awsS3Bucket, uploadACL})
 }
