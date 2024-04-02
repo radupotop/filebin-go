@@ -14,17 +14,15 @@ import (
 )
 
 var (
-	awsRegion      string
-	awsAccessKeyID string
-	awsSecretKey   string
-	s3Bucket       string
+	awsRegion   string
+	awsS3Bucket string
 )
 
 // Upload to S3 bucket
 func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.FileHeader, prevCtx ResponseContext) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
-		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretKey, ""),
+		Credentials: credentials.NewEnvCredentials(),
 	})
 
 	if err != nil {
@@ -41,7 +39,7 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(s3Bucket),
+		Bucket: aws.String(awsS3Bucket),
 		Key:    aws.String(handler.Filename),
 		Body:   file,
 		ACL:    aws.String("public-read"),
@@ -68,8 +66,9 @@ func init() {
 	gotenv.Must(gotenv.Load)
 	log.Println("Loading env vars")
 	awsRegion = os.Getenv("AWS_REGION")
-	awsAccessKeyID = os.Getenv("AWS_KEY_ID")
-	awsSecretKey = os.Getenv("AWS_SECRET")
-	s3Bucket = os.Getenv("AWS_BUCKET")
-	log.Println("Using env vars:", [3]string{awsRegion, awsAccessKeyID, s3Bucket})
+	awsS3Bucket = os.Getenv("AWS_BUCKET")
+	// The following are read by NewEnvCredentials
+	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	// "AWS_SECRET_ACCESS_KEY"
+	log.Println("Using env vars:", [3]string{awsRegion, awsS3Bucket, awsAccessKeyID})
 }

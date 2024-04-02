@@ -1,2 +1,2 @@
 AWS_REGION=eu-west1
-AWS_KEY_ID=abcde123
+AWS_ACCESS_KEY_ID=abcde123
