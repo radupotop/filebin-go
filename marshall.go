@@ -16,7 +16,7 @@ type Response struct {
 }
 
 // Return JSON response
-func (r Response) returnJson(w http.ResponseWriter) {
+func (r *Response) returnJson(w http.ResponseWriter) {
 	// Set the Content-Type header and the HTTP status code
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(r.Status)
@@ -39,7 +39,7 @@ type UpResult struct {
 // 	u.Results = append(u.Results, upres)
 // }
 
-// func (u UploadResults) toJson() (string, error) {
+// func (u *UploadResults) toJson() (string, error) {
 // 	resp, err := json.Marshal(u)
 // 	return string(resp), err
 // }

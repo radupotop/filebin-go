@@ -48,7 +48,7 @@ func checkFile(handler *multipart.FileHeader) (Response, error) {
 			},
 			Status: http.StatusRequestEntityTooLarge,
 		}
-		return resp, fmt.Errorf("file size exceeds the limit: %d bytes", MAX_FILE_SIZE)
+		return resp, fmt.Errorf("file size %d exceeds the limit: %d bytes", handler.Size, MAX_FILE_SIZE)
 	}
 
 	// Check file extension
