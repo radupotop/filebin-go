@@ -19,6 +19,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form
 	err := r.ParseMultipartForm(MAX_FILE_SIZE)
 	if err != nil {
+		fmt.Println(err)
 		resp := Response{Message: "Unable to parse form", Status: http.StatusBadRequest}
 		resp.returnJson(w)
 		return
@@ -37,15 +38,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		file, err := handler.Open()
 
 		if err != nil {
+			fmt.Println(err)
 			resp := Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
 			resp.returnJson(w)
 			return
 		}
 		defer file.Close()
 
-		respCheck, errCheck := checkFile(handler)
-		if errCheck != nil {
-			respCheck.returnJson(w)
+		resp, err := checkFile(handler)
+		if err != nil {
+			fmt.Println(err)
+			resp.returnJson(w)
 			return
 		}
 
