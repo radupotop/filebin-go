@@ -28,7 +28,11 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 	})
 
 	if err != nil {
-		resp := Response{Message: "Failed to create AWS session", Status: http.StatusInternalServerError}
+		resp := Response{
+			Message: "Failed to create AWS session",
+			Context: prevCtx,
+			Status:  http.StatusInternalServerError,
+		}
 		resp.returnJson(w)
 		return
 	}

@@ -21,6 +21,7 @@ const (
 var (
 	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg"}
 	FILE_SIZE_UNIT     = math.Pow(1024, 2) // MiB
+	FS_UNIT_NAME       = "MiB"
 	RESP_OK            = Response{Message: "OK", Status: http.StatusOK}
 )
 
@@ -37,13 +38,16 @@ func readFile(filename string) (string, error) {
 
 // Check if pre-conditions are met for upload
 func checkFile(handler *multipart.FileHeader) (Response, error) {
-	ctx := ResponseContext{handler.Filename}
 	// Check file size
 	if handler.Size > MAX_FILE_SIZE {
 		resp := Response{
 			Message: "File size exceeds the limit",
-			Context: append(ctx, "Max file size must be", fmt.Sprintf("%.2f MiB", MAX_FILE_SIZE/FILE_SIZE_UNIT)),
-			Status:  http.StatusRequestEntityTooLarge,
+			Context: ResponseContext{
+				handler.Filename,
+				"Max file size must be",
+				fmt.Sprintf("%.2f %s", MAX_FILE_SIZE/FILE_SIZE_UNIT, FS_UNIT_NAME),
+			},
+			Status: http.StatusRequestEntityTooLarge,
 		}
 		return resp, fs.ErrInvalid
 	}
@@ -53,8 +57,12 @@ func checkFile(handler *multipart.FileHeader) (Response, error) {
 	if !slices.Contains(ALLOWED_EXTENSIONS, extension) {
 		resp := Response{
 			Message: "File extension not allowed",
-			Context: append(ctx, "Must be one of", fmt.Sprint(ALLOWED_EXTENSIONS)),
-			Status:  http.StatusUnsupportedMediaType,
+			Context: ResponseContext{
+				handler.Filename,
+				"Must be one of",
+				fmt.Sprint(ALLOWED_EXTENSIONS),
+			},
+			Status: http.StatusUnsupportedMediaType,
 		}
 		return resp, fs.ErrInvalid
 	}
