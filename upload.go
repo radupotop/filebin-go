@@ -52,14 +52,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		var destFile string
 		// Continue to S3 upload
 		if use_s3 {
-			destFile = putToS3(w, file, handler.Filename)
+			destFile, err = putToS3(w, file, handler.Filename)
 		} else {
-			tmpFileName, respCp, errCp := copyFileTemp(file)
-			if errCp != nil {
-				respCp.returnJson(w)
-				return
-			}
-			destFile = tmpFileName
+			destFile, err = copyFileTemp(w, file)
+		}
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
 
 		results = append(results, UpResult{Orig: handler.Filename, Dest: destFile})

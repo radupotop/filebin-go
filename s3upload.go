@@ -26,7 +26,7 @@ var (
 )
 
 // Upload to S3 bucket
-func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) string {
+func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -38,7 +38,7 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 			Status:  http.StatusInternalServerError,
 		}
 		resp.returnJson(w)
-		return ""
+		return "", err
 	}
 
 	svc := s3.New(sess)
@@ -58,9 +58,9 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 			Status:  http.StatusInternalServerError,
 		}
 		resp.returnJson(w)
-		return ""
+		return "", err
 	}
-	return uuidFilename
+	return uuidFilename, nil
 }
 
 // only called once
