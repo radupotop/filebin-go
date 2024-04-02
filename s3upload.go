@@ -17,6 +17,7 @@ import (
 
 const (
 	uploadACL string = "public-read"
+	uploadDir string = "img/"
 )
 
 var (
@@ -41,7 +42,7 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 	}
 
 	svc := s3.New(sess)
-	uuidFilename := "img/" + uuid.New().String() + filepath.Ext(origFilename)
+	uuidFilename := uploadDir + uuid.New().String() + filepath.Ext(origFilename)
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
