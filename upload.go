@@ -69,7 +69,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := Response{
 		Message: "Files saved",
-		Context: ResponseContext{"Use S3=", fmt.Sprint(use_s3)},
+		Context: ResponseContext{"Use S3", fmt.Sprint(use_s3)},
 		Results: results,
 		Status:  http.StatusCreated,
 	}

@@ -41,7 +41,7 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 	}
 
 	svc := s3.New(sess)
-	uuidFilename := uuid.Must(uuid.NewV7()).String() + filepath.Ext(origFilename)
+	uuidFilename := "img/" + uuid.New().String() + filepath.Ext(origFilename)
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
