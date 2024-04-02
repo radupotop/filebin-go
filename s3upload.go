@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -24,7 +25,7 @@ var (
 )
 
 // Upload to S3 bucket
-func putToS3(w http.ResponseWriter, multipartFile multipart.File) string {
+func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) string {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -40,14 +41,14 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File) string {
 	}
 
 	svc := s3.New(sess)
-	uuidFilename := uuid.Must(uuid.NewV7()).String()
+	uuidFilename := uuid.Must(uuid.NewV7()).String() + filepath.Ext(origFilename)
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(awsS3Bucket),
 		Key:    aws.String(uuidFilename),
 		Body:   multipartFile,
-		ACL:    aws.String(uploadACL),
+		// ACL:    aws.String(uploadACL),
 	})
 	if err != nil {
 		resp := Response{

@@ -52,7 +52,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		var destFile string
 		// Continue to S3 upload
 		if use_s3 {
-			destFile = putToS3(w, file)
+			destFile = putToS3(w, file, handler.Filename)
 		} else {
 			tmpFileName, respCp, errCp := copyFileTemp(file)
 			if errCp != nil {
