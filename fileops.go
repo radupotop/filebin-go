@@ -70,12 +70,13 @@ func checkFile(handler *multipart.FileHeader) (Response, error) {
 	return RESP_OK, nil
 }
 
-func copyFileTemp(file multipart.File) (Response, string, error) {
+func copyFileTemp(file multipart.File) (string, Response, error) {
 	// Create a new file in the server's temporary directory
 	tempFile, err := os.CreateTemp("", "upload-*")
+	tempFileName := tempFile.Name()
 	if err != nil {
 		resp := Response{Message: "Unable to create temporary file", Status: http.StatusInternalServerError}
-		return resp, tempFile.Name(), err
+		return tempFileName, resp, err
 	}
 	defer tempFile.Close()
 
@@ -83,8 +84,8 @@ func copyFileTemp(file multipart.File) (Response, string, error) {
 	_, err = io.Copy(tempFile, file)
 	if err != nil {
 		resp := Response{Message: "Unable to copy file content", Status: http.StatusInternalServerError}
-		return resp, tempFile.Name(), err
+		return tempFileName, resp, err
 	}
 
-	return RESP_OK, tempFile.Name(), nil
+	return tempFileName, RESP_OK, nil
 }
