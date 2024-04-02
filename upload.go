@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -25,6 +26,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the map of uploaded files
 	files := r.MultipartForm.File["files"]
+	use_s3 := r.FormValue("s3") == "on"
 
 	// Will store list of results
 	var results ResponseResults
@@ -47,27 +49,27 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		respCp, tmpFileName, errCp := copyFileTemp(file)
-		if errCp != nil {
-			respCp.returnJson(w)
-			return
-		}
-		results = append(results, UpResult{Orig: handler.Filename, Dest: tmpFileName})
-
+		var destFile string
 		// Continue to S3 upload
-		use_s3 := r.FormValue("s3")
-		if use_s3 == "on" {
-			// Status up to this point
-			statusCtx := ResponseContext{handler.Filename, "File saved locally as", tmpFileName}
-			putToS3(w, file, handler, statusCtx)
-			return
+		if use_s3 {
+			destFile = putToS3(w, file)
+		} else {
+			respCp, tmpFileName, errCp := copyFileTemp(file)
+			if errCp != nil {
+				respCp.returnJson(w)
+				return
+			}
+			destFile = tmpFileName
 		}
+
+		results = append(results, UpResult{Orig: handler.Filename, Dest: destFile})
 	}
 
 	log.Println("Results:", results)
 
 	resp := Response{
-		Message: "Files saved locally",
+		Message: "Files saved",
+		Context: ResponseContext{fmt.Sprintf("To S3=%s", use_s3)},
 		Results: results,
 		Status:  http.StatusCreated,
 	}

@@ -10,7 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/google/uuid"
 	"github.com/subosito/gotenv"
+)
+
+const (
+	uploadACL string = "public-read"
 )
 
 var (
@@ -19,7 +24,7 @@ var (
 )
 
 // Upload to S3 bucket
-func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.FileHeader, prevCtx ResponseContext) {
+func putToS3(w http.ResponseWriter, multipartFile multipart.File) string {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -28,37 +33,32 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 	if err != nil {
 		resp := Response{
 			Message: "Failed to create AWS session",
-			Context: prevCtx,
 			Status:  http.StatusInternalServerError,
 		}
 		resp.returnJson(w)
-		return
+		return ""
 	}
 
 	svc := s3.New(sess)
+	uuidFilename := uuid.Must(uuid.NewV7()).String()
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(awsS3Bucket),
-		Key:    aws.String(handler.Filename),
-		Body:   file,
-		ACL:    aws.String("public-read"),
+		Key:    aws.String(uuidFilename),
+		Body:   multipartFile,
+		ACL:    aws.String(uploadACL),
 	})
 	if err != nil {
 		resp := Response{
 			Message: "Failed to upload file to S3 bucket",
-			Context: prevCtx,
+			Context: ResponseContext{uuidFilename, awsS3Bucket},
 			Status:  http.StatusInternalServerError,
 		}
 		resp.returnJson(w)
-		return
+		return ""
 	}
-
-	finalResp := Response{
-		Message: "File uploaded successfully",
-		Status:  http.StatusCreated,
-	}
-	finalResp.returnJson(w)
+	return uuidFilename
 }
 
 // only called once
