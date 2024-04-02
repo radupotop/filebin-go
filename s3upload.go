@@ -54,7 +54,7 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 	if err != nil {
 		resp := Response{
 			Message: "Failed to upload file to S3 bucket",
-			Context: ResponseContext{uuidFilename, awsS3Bucket, uploadACL},
+			Context: ResponseContext{origFilename, uuidFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
 		resp.returnJson(w)
