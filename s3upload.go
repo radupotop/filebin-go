@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -22,13 +21,15 @@ var (
 )
 
 // Upload to S3 bucket
-func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.FileHeader, prevMsg string) {
+func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.FileHeader, prevCtx ResponseContext) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewStaticCredentials(awsAccessKeyID, awsSecretKey, ""),
 	})
+
 	if err != nil {
-		http.Error(w, "Failed to create AWS session", http.StatusInternalServerError)
+		resp := Response{Message: "Failed to create AWS session", Status: http.StatusInternalServerError}
+		resp.returnJson(w)
 		return
 	}
 
@@ -42,11 +43,20 @@ func putToS3(w http.ResponseWriter, file multipart.File, handler *multipart.File
 		ACL:    aws.String("public-read"),
 	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("%s\nFailed to upload file to S3 bucket", prevMsg), http.StatusInternalServerError)
+		resp := Response{
+			Message: "Failed to upload file to S3 bucket",
+			Context: prevCtx,
+			Status:  http.StatusInternalServerError,
+		}
+		resp.returnJson(w)
 		return
 	}
 
-	fmt.Fprint(w, "File uploaded successfully!")
+	finalResp := Response{
+		Message: "File uploaded successfully",
+		Status:  http.StatusCreated,
+	}
+	finalResp.returnJson(w)
 }
 
 // only called once

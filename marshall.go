@@ -5,11 +5,14 @@ import (
 	"net/http"
 )
 
+type ResponseContext []string
+type ResponseResults []UpResult
+
 type Response struct {
-	Message string     `json:"message"`
-	Context []string   `json:"context"`
-	Results []UpResult `json:"results"`
-	Status  int        `json:"status"`
+	Message string          `json:"message"`
+	Context ResponseContext `json:"context"`
+	Results ResponseResults `json:"results"`
+	Status  int             `json:"status"`
 }
 
 // Return JSON response

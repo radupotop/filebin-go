@@ -37,7 +37,7 @@ func readFile(filename string) (string, error) {
 
 // Check if pre-conditions are met for upload
 func checkFile(handler *multipart.FileHeader) (Response, error) {
-	ctx := []string{handler.Filename}
+	ctx := ResponseContext{handler.Filename}
 	// Check file size
 	if handler.Size > MAX_FILE_SIZE {
 		resp := Response{

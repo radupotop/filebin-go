@@ -27,7 +27,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	files := r.MultipartForm.File["files"]
 
 	// Will store list of results
-	var results []UpResult
+	var results ResponseResults
 
 	// Iterate over each uploaded file
 	for _, handler := range files {
@@ -53,16 +53,16 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		results = append(results, UpResult{Orig: handler.Filename, Dest: tmpFileName})
-	}
 
-	// // Continue to S3 upload
-	// use_s3 := r.FormValue("s3")
-	// if use_s3 == "on" {
-	// 	// Status up to this point
-	// 	statusMsg := fmt.Sprintf("File %s saved locally as: %s", handler.Filename, tempFile.Name())
-	// 	putToS3(w, file, handler, statusMsg)
-	// 	return
-	// }
+		// Continue to S3 upload
+		use_s3 := r.FormValue("s3")
+		if use_s3 == "on" {
+			// Status up to this point
+			statusCtx := ResponseContext{handler.Filename, "File saved locally as", tmpFileName}
+			putToS3(w, file, handler, statusCtx)
+			return
+		}
+	}
 
 	log.Println("Results:", results)
 
