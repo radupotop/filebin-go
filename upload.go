@@ -67,7 +67,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		results = append(results, UpResult{Orig: handler.Filename, Dest: destFile})
 	}
 
-	log.Println("Results:", results)
+	log.Printf("Results: %+v", results)
 
 	resp := Response{
 		Message: "Files saved",
