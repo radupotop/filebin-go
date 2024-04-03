@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -71,7 +72,11 @@ func init() {
 	awsS3Bucket = os.Getenv("AWS_BUCKET")
 	uploadACL = os.Getenv("UPLOAD_ACL")
 	// The following are read by NewEnvCredentials
-	//   AWS_ACCESS_KEY_ID
-	//   AWS_SECRET_ACCESS_KEY
-	log.Println("Using env vars:", []string{awsRegion, awsS3Bucket, uploadACL})
+	// They are only checked here.
+	_, keyIsSet := os.LookupEnv("AWS_ACCESS_KEY_ID")
+	_, secretIsSet := os.LookupEnv("AWS_SECRET_ACCESS_KEY")
+	log.Println("Using env vars:", []string{
+		awsRegion, awsS3Bucket, uploadACL,
+		fmt.Sprint(keyIsSet && secretIsSet),
+	})
 }
