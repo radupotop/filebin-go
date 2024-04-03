@@ -1,4 +1,4 @@
-package main
+package backends
 
 import (
 	"fmt"
@@ -14,6 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/subosito/gotenv"
+
+	"github.com/radupotop/filebin-go/marshal"
 )
 
 const (
@@ -27,18 +29,18 @@ var (
 )
 
 // Upload to S3 bucket
-func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) (string, error) {
+func PutToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
 	})
 
 	if err != nil {
-		resp := Response{
+		resp := marshal.Response{
 			Message: "Failed to create AWS session",
 			Status:  http.StatusInternalServerError,
 		}
-		resp.returnJson(w)
+		resp.ReturnJson(w)
 		return "", err
 	}
 
@@ -53,12 +55,12 @@ func putToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 		ACL:    aws.String(uploadACL),
 	})
 	if err != nil {
-		resp := Response{
+		resp := marshal.Response{
 			Message: "Failed to upload file to S3 bucket",
-			Context: ResponseContext{origFilename, uuidFilename, awsS3Bucket, uploadACL},
+			Context: marshal.ResponseContext{origFilename, uuidFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
-		resp.returnJson(w)
+		resp.ReturnJson(w)
 		return "", err
 	}
 	return uuidFilename, nil

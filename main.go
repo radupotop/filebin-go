@@ -5,11 +5,14 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/radupotop/filebin-go/backends"
+	"github.com/radupotop/filebin-go/marshal"
 )
 
 // Handler for rendering the HTML form
 func formHandler(w http.ResponseWriter, r *http.Request) {
-	formHTML, _ := readFile("template.html")
+	formHTML, _ := backends.ReadFile("template.html")
 	tmpl := template.Must(template.New("form").Parse(formHTML))
 	tmpl.Execute(w, nil)
 }
@@ -17,11 +20,11 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 // Handler for uploading file to S3
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form
-	err := r.ParseMultipartForm(MAX_FILE_SIZE)
+	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE)
 	if err != nil {
 		fmt.Println(err)
-		resp := Response{Message: "Unable to parse form", Status: http.StatusBadRequest}
-		resp.returnJson(w)
+		resp := marshal.Response{Message: "Unable to parse form", Status: http.StatusBadRequest}
+		resp.ReturnJson(w)
 		return
 	}
 
@@ -30,7 +33,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	use_s3 := r.FormValue("s3") == "on"
 
 	// Will store list of results
-	var results ResponseResults
+	var results marshal.ResponseResults
 
 	// Iterate over each uploaded file
 	for _, handler := range files {
@@ -39,43 +42,43 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			fmt.Println(err)
-			resp := Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
-			resp.returnJson(w)
+			resp := marshal.Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
+			resp.ReturnJson(w)
 			return
 		}
 		defer file.Close()
 
-		resp, err := checkFile(handler)
+		resp, err := backends.CheckFile(handler)
 		if err != nil {
 			fmt.Println(err)
-			resp.returnJson(w)
+			resp.ReturnJson(w)
 			return
 		}
 
 		var destFile string
 		// Continue to S3 upload
 		if use_s3 {
-			destFile, err = putToS3(w, file, handler.Filename)
+			destFile, err = backends.PutToS3(w, file, handler.Filename)
 		} else {
-			destFile, err = copyFileTemp(w, file)
+			destFile, err = backends.CopyFileTemp(w, file)
 		}
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		results = append(results, UpResult{Orig: handler.Filename, Dest: destFile})
+		results = append(results, marshal.UpResult{Orig: handler.Filename, Dest: destFile})
 	}
 
 	log.Printf("Results: %+v", results)
 
-	resp := Response{
+	resp := marshal.Response{
 		Message: "Files saved",
-		Context: ResponseContext{"Use S3", fmt.Sprint(use_s3)},
+		Context: marshal.ResponseContext{"Use S3", fmt.Sprint(use_s3)},
 		Results: results,
 		Status:  http.StatusCreated,
 	}
-	resp.returnJson(w)
+	resp.ReturnJson(w)
 }
 
 func main() {

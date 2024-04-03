@@ -1,4 +1,4 @@
-package main
+package marshal
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ type Response struct {
 }
 
 // Return JSON response
-func (r *Response) returnJson(w http.ResponseWriter) {
+func (r *Response) ReturnJson(w http.ResponseWriter) {
 	// Set the Content-Type header and the HTTP status code
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(r.Status)
@@ -55,6 +55,6 @@ type UpResult struct {
 // 	return json.Marshal(data)
 // }
 
-// func returnJson(w http.ResponseWriter, resp Response) {
+// func ReturnJson(w http.ResponseWriter, resp Response) {
 // 	json.NewEncoder(w).Encode(resp)
 // }
