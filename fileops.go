@@ -73,19 +73,27 @@ func copyFileTemp(w http.ResponseWriter, file multipart.File) (string, error) {
 	// Create a new file in the server's temporary directory
 	tempFile, err := os.CreateTemp("", "upload-*")
 	if err != nil {
-		resp := Response{Message: "Unable to create temporary file", Status: http.StatusInternalServerError}
+		resp := Response{
+			Message: "Unable to create temporary file",
+			Status:  http.StatusInternalServerError,
+		}
 		resp.returnJson(w)
 		return "", err
 	}
+	tempFileName := tempFile.Name()
 	defer tempFile.Close()
 
 	// Copy the file content to the temporary file
 	_, err = io.Copy(tempFile, file)
 	if err != nil {
-		resp := Response{Message: "Unable to copy file content", Status: http.StatusInternalServerError}
+		resp := Response{
+			Message: "Unable to copy file content",
+			Context: ResponseContext{tempFileName},
+			Status:  http.StatusInternalServerError,
+		}
 		resp.returnJson(w)
 		return "", err
 	}
 
-	return tempFile.Name(), nil
+	return tempFileName, nil
 }
