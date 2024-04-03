@@ -12,7 +12,7 @@ import (
 
 // Handler for rendering the HTML form
 func formHandler(w http.ResponseWriter, r *http.Request) {
-	formHTML, _ := backends.ReadFile("template.html")
+	formHTML, _ := backends.ReadFile("templates/template.html")
 	tmpl := template.Must(template.New("form").Parse(formHTML))
 	tmpl.Execute(w, nil)
 }
@@ -20,7 +20,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 // Handler for uploading file to S3
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form
-	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE)
+	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE * 5)
 	if err != nil {
 		fmt.Println(err)
 		resp := marshal.Response{Message: "Unable to parse form", Status: http.StatusBadRequest}
