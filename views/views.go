@@ -10,9 +10,13 @@ import (
 	"github.com/radupotop/filebin-go/marshal"
 )
 
+const (
+	UPLOAD_TEMPLATE_FILE string = "templates/template.html"
+)
+
 // Handler for rendering the HTML form
 func FormHandler(w http.ResponseWriter, r *http.Request) {
-	formHTML, _ := backends.ReadFile("templates/template.html")
+	formHTML, _ := backends.ReadFile(UPLOAD_TEMPLATE_FILE)
 	tmpl := template.Must(template.New("form").Parse(formHTML))
 	tmpl.Execute(w, nil)
 }
