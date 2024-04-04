@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg"}
+	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg", ".gif"}
 	FILE_SIZE_UNIT     = math.Pow(1024, 2) // MiB
 	FS_UNIT_NAME       = "MiB"
 	RESP_OK            = marshal.Response{Message: "OK", Status: http.StatusOK}
