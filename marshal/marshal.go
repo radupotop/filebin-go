@@ -16,6 +16,8 @@ type Response struct {
 	Err     error           `json:"-"`
 }
 
+var RESP_OK = Response{Message: "OK", Status: http.StatusOK}
+
 // Return JSON response
 func (r *Response) ReturnJson(w http.ResponseWriter) {
 	// Set the Content-Type header and the HTTP status code
