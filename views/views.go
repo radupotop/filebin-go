@@ -27,6 +27,7 @@ func FormHandler(w http.ResponseWriter, r *http.Request) {
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	begin := time.Now()
 	var waitgroup sync.WaitGroup
+	var resp marshal.Response
 	// Parse the multipart form
 	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE * 5)
 	if err != nil {
@@ -42,7 +43,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Will store list of results
 	var results marshal.ResponseResults
-	var resp marshal.Response
 	errChan := make(chan marshal.Response)
 	// var errChan chan marshal.Response
 

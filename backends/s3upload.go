@@ -46,6 +46,7 @@ func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFi
 			Message: "Failed to create AWS session",
 			Status:  http.StatusInternalServerError,
 		}
+		log.Println("Failed to create AWS session")
 		errChan <- resp
 		return
 	}
@@ -65,6 +66,7 @@ func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFi
 			Context: marshal.ResponseContext{destFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
+		log.Printf("Failed to upload file to S3 bucket: %s -> %s\n", destFilename, awsS3Bucket)
 		errChan <- resp
 		return
 	}
