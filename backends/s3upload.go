@@ -27,12 +27,11 @@ var (
 
 // Generate a new filename based on UUID4 + the original file extension
 func GenUuidFilename(origFilename string) string {
-	uuidFilename := uuid.New().String() + filepath.Ext(origFilename)
-	return uuidFilename
+	return uuid.New().String() + filepath.Ext(origFilename)
 }
 
 // Upload to S3 bucket
-func PutToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) (string, error) {
+func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename string) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -48,25 +47,25 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 	}
 
 	svc := s3.New(sess)
-	uuidFilename := uploadDir + GenUuidFilename(origFilename)
+	destFilename = uploadDir + destFilename
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(awsS3Bucket),
-		Key:    aws.String(uuidFilename),
+		Key:    aws.String(destFilename),
 		Body:   multipartFile,
 		ACL:    aws.String(uploadACL),
 	})
 	if err != nil {
 		resp := marshal.Response{
 			Message: "Failed to upload file to S3 bucket",
-			Context: marshal.ResponseContext{origFilename, uuidFilename, awsS3Bucket, uploadACL},
+			Context: marshal.ResponseContext{destFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
 		resp.ReturnJson(w)
 		return "", err
 	}
-	return uuidFilename, nil
+	return destFilename, nil
 }
 
 // only called once
