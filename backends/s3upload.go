@@ -18,14 +18,11 @@ import (
 	"github.com/radupotop/filebin-go/marshal"
 )
 
-const (
-	uploadDir string = "img/"
-)
-
 var (
 	awsRegion   string
 	awsS3Bucket string
 	uploadACL   string
+	uploadDir   string // upload dir inside the bucket
 )
 
 // Generate a new filename based on UUID4 + the original file extension
@@ -79,12 +76,13 @@ func init() {
 	awsRegion = os.Getenv("AWS_REGION")
 	awsS3Bucket = os.Getenv("AWS_BUCKET")
 	uploadACL = os.Getenv("UPLOAD_ACL")
+	uploadDir = os.Getenv("UPLOAD_DIR")
 	// The following are read by NewEnvCredentials
 	// They are only checked here.
 	_, keyIsSet := os.LookupEnv("AWS_ACCESS_KEY_ID")
 	_, secretIsSet := os.LookupEnv("AWS_SECRET_ACCESS_KEY")
 	log.Println("Using env vars:", []string{
-		awsRegion, awsS3Bucket, uploadACL,
+		awsRegion, awsS3Bucket, uploadACL, uploadDir,
 		fmt.Sprint(keyIsSet && secretIsSet),
 	})
 }
