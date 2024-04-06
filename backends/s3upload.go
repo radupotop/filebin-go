@@ -28,7 +28,7 @@ var (
 
 // Generate a new filename based on UUID4 + the original file extension
 func GenUuidFilename(origFilename string) string {
-	return uuid.New().String() + filepath.Ext(origFilename)
+	return uploadDir + uuid.New().String() + filepath.Ext(origFilename)
 }
 
 // Upload to S3 bucket
@@ -49,7 +49,6 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 	defer waitgroup.Done()
 
 	svc := s3.New(sess)
-	destFilename = uploadDir + destFilename
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
