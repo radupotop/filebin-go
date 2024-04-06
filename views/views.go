@@ -43,8 +43,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Will store list of results
 	var results marshal.ResponseResults
 	var resp marshal.Response
-	respChan := make(chan marshal.Response)
-	// var respChan chan marshal.Response
+	errChan := make(chan marshal.Response)
+	// var errChan chan marshal.Response
 
 	// Iterate over each uploaded file
 	for idx, handler := range files {
@@ -71,7 +71,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if use_s3 {
 			destFile = backends.GenUuidFilename(handler.Filename)
 			waitgroup.Add(1)
-			go backends.PutToS3(respChan, file, destFile, &waitgroup, idx)
+			go backends.PutToS3(errChan, file, destFile, &waitgroup, idx)
 		} else {
 			destFile, err = backends.CopyFileTemp(w, file)
 			if err != nil {
@@ -84,9 +84,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	waitgroup.Wait()
 
 	select {
-	case resp = <-respChan:
-		if resp.Err != nil {
-			log.Println(resp.Err)
+	case resp = <-errChan:
+		if resp.IsError() {
 			resp.ReturnJson(w)
 			return
 		}

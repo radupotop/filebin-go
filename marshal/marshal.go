@@ -13,7 +13,6 @@ type Response struct {
 	Context ResponseContext `json:"context"`
 	Results ResponseResults `json:"results"`
 	Status  int             `json:"status"`
-	Err     error           `json:"-"`
 }
 
 var RESP_OK = Response{Message: "OK", Status: http.StatusOK}
@@ -25,6 +24,10 @@ func (r *Response) ReturnJson(w http.ResponseWriter) {
 	w.WriteHeader(r.Status)
 	// Marshall struct to JSON
 	json.NewEncoder(w).Encode(r)
+}
+
+func (r *Response) IsError() bool {
+	return r.Status >= 400
 }
 
 // Individual upload result

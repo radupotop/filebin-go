@@ -32,7 +32,7 @@ func GenUuidFilename(origFilename string) string {
 }
 
 // Upload to S3 bucket
-func PutToS3(respChan chan marshal.Response, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) {
+func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) {
 
 	defer waitgroup.Done()
 
@@ -45,9 +45,8 @@ func PutToS3(respChan chan marshal.Response, multipartFile multipart.File, destF
 		resp := marshal.Response{
 			Message: "Failed to create AWS session",
 			Status:  http.StatusInternalServerError,
-			Err:     fmt.Errorf("failed to create AWS session"),
 		}
-		respChan <- resp
+		errChan <- resp
 		return
 	}
 
@@ -65,9 +64,8 @@ func PutToS3(respChan chan marshal.Response, multipartFile multipart.File, destF
 			Message: "Failed to upload file to S3 bucket",
 			Context: marshal.ResponseContext{destFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
-			Err:     fmt.Errorf("failed to upload file to S3 bucket"),
 		}
-		respChan <- resp
+		errChan <- resp
 		return
 	}
 	log.Printf("S3 upload #%d finished: %s", idx+1, destFilename)
