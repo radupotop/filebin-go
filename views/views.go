@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/radupotop/filebin-go/backends"
 	"github.com/radupotop/filebin-go/marshal"
@@ -23,6 +24,7 @@ func FormHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler for uploading file to S3
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
+	begin := time.Now()
 	// Parse the multipart form
 	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE * 5)
 	if err != nil {
@@ -83,4 +85,5 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusCreated,
 	}
 	resp.ReturnJson(w)
+	log.Printf("Upload finished in: %s\n", time.Since(begin))
 }
