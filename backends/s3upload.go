@@ -32,7 +32,7 @@ func GenUuidFilename(origFilename string) string {
 }
 
 // Upload to S3 bucket
-func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) (string, error) {
+func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -44,7 +44,7 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 			Status:  http.StatusInternalServerError,
 		}
 		resp.ReturnJson(w)
-		return "", err
+		panic("Failed to create AWS session")
 	}
 	defer waitgroup.Done()
 
@@ -64,10 +64,9 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 			Status:  http.StatusInternalServerError,
 		}
 		resp.ReturnJson(w)
-		return "", err
+		panic("Failed to upload file to S3 bucket")
 	}
 	log.Printf("S3 upload #%d finished: %s", idx+1, destFilename)
-	return destFilename, nil
 }
 
 // only called once
