@@ -13,6 +13,7 @@ type Response struct {
 	Context ResponseContext `json:"context"`
 	Results ResponseResults `json:"results"`
 	Status  int             `json:"status"`
+	Err     error           `json:"-"`
 }
 
 // Return JSON response

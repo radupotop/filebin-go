@@ -32,7 +32,10 @@ func GenUuidFilename(origFilename string) string {
 }
 
 // Upload to S3 bucket
-func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) {
+func PutToS3(respChan chan marshal.Response, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) {
+
+	defer waitgroup.Done()
+
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -42,11 +45,11 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 		resp := marshal.Response{
 			Message: "Failed to create AWS session",
 			Status:  http.StatusInternalServerError,
+			Err:     fmt.Errorf("failed to create AWS session"),
 		}
-		resp.ReturnJson(w)
-		panic("Failed to create AWS session")
+		respChan <- resp
+		return
 	}
-	defer waitgroup.Done()
 
 	svc := s3.New(sess)
 
@@ -62,9 +65,10 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 			Message: "Failed to upload file to S3 bucket",
 			Context: marshal.ResponseContext{destFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
+			Err:     fmt.Errorf("failed to upload file to S3 bucket"),
 		}
-		resp.ReturnJson(w)
-		panic("Failed to upload file to S3 bucket")
+		respChan <- resp
+		return
 	}
 	log.Printf("S3 upload #%d finished: %s", idx+1, destFilename)
 }

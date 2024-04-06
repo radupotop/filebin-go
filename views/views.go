@@ -30,7 +30,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form
 	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE * 5)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		resp := marshal.Response{Message: "Unable to parse form", Status: http.StatusBadRequest}
 		resp.ReturnJson(w)
 		return
@@ -42,23 +42,26 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Will store list of results
 	var results marshal.ResponseResults
+	respChan := make(chan marshal.Response)
+	// var respChan chan marshal.Response
 
 	// Iterate over each uploaded file
 	for idx, handler := range files {
 		// Open the uploaded file
 		file, err := handler.Open()
+		var resp marshal.Response
 
 		if err != nil {
-			fmt.Println(err)
-			resp := marshal.Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
+			log.Println(err)
+			resp = marshal.Response{Message: "Failed to retrieve file", Status: http.StatusBadRequest}
 			resp.ReturnJson(w)
 			return
 		}
 		defer file.Close()
 
-		resp, err := backends.CheckFile(handler)
+		resp, err = backends.CheckFile(handler)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			resp.ReturnJson(w)
 			return
 		}
@@ -68,12 +71,18 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if use_s3 {
 			destFile = backends.GenUuidFilename(handler.Filename)
 			waitgroup.Add(1)
-			go backends.PutToS3(w, file, destFile, &waitgroup, idx)
+			go backends.PutToS3(respChan, file, destFile, &waitgroup, idx)
 		} else {
 			destFile, err = backends.CopyFileTemp(w, file)
+			if err != nil {
+				log.Println(err)
+				return
+			}
 		}
-		if err != nil {
-			fmt.Println(err)
+		resp = <-respChan
+		if resp.Err != nil {
+			log.Println(resp.Err)
+			resp.ReturnJson(w)
 			return
 		}
 
