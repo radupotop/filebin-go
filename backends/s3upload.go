@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -31,7 +32,7 @@ func GenUuidFilename(origFilename string) string {
 }
 
 // Upload to S3 bucket
-func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename string) (string, error) {
+func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(awsRegion),
 		Credentials: credentials.NewEnvCredentials(),
@@ -45,6 +46,7 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 		resp.ReturnJson(w)
 		return "", err
 	}
+	defer waitgroup.Done()
 
 	svc := s3.New(sess)
 	destFilename = uploadDir + destFilename
@@ -65,6 +67,7 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, destFilename s
 		resp.ReturnJson(w)
 		return "", err
 	}
+	log.Printf("S3 upload #%d finished: %s", idx+1, destFilename)
 	return destFilename, nil
 }
 

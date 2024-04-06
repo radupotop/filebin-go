@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/radupotop/filebin-go/backends"
@@ -25,6 +26,7 @@ func FormHandler(w http.ResponseWriter, r *http.Request) {
 // Handler for uploading file to S3
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	begin := time.Now()
+	var waitgroup sync.WaitGroup
 	// Parse the multipart form
 	err := r.ParseMultipartForm(backends.MAX_FILE_SIZE * 5)
 	if err != nil {
@@ -42,7 +44,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	var results marshal.ResponseResults
 
 	// Iterate over each uploaded file
-	for _, handler := range files {
+	for idx, handler := range files {
 		// Open the uploaded file
 		file, err := handler.Open()
 
@@ -64,8 +66,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		var destFile string
 		// Continue to S3 upload
 		if use_s3 {
-			uuidFilename := backends.GenUuidFilename(handler.Filename)
-			destFile, err = backends.PutToS3(w, file, uuidFilename)
+			destFile = backends.GenUuidFilename(handler.Filename)
+			waitgroup.Add(1)
+			go backends.PutToS3(w, file, destFile, &waitgroup, idx)
 		} else {
 			destFile, err = backends.CopyFileTemp(w, file)
 		}
@@ -76,6 +79,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		results = append(results, marshal.UpResult{Orig: handler.Filename, Dest: destFile})
 	}
+	waitgroup.Wait()
 
 	log.Printf("Results: %+v", results)
 
@@ -86,5 +90,5 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusCreated,
 	}
 	resp.ReturnJson(w)
-	log.Printf("Upload finished in: %s\n", time.Since(begin))
+	log.Printf("All uploads finished in: %s\n", time.Since(begin))
 }
