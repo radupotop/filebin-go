@@ -42,6 +42,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Will store list of results
 	var results marshal.ResponseResults
+	var resp marshal.Response
 	respChan := make(chan marshal.Response)
 	// var respChan chan marshal.Response
 
@@ -49,7 +50,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	for idx, handler := range files {
 		// Open the uploaded file
 		file, err := handler.Open()
-		var resp marshal.Response
 
 		if err != nil {
 			log.Println(err)
@@ -79,20 +79,24 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		resp = <-respChan
+		results = append(results, marshal.UpResult{Orig: handler.Filename, Dest: destFile})
+	}
+	waitgroup.Wait()
+
+	select {
+	case resp = <-respChan:
 		if resp.Err != nil {
 			log.Println(resp.Err)
 			resp.ReturnJson(w)
 			return
 		}
-
-		results = append(results, marshal.UpResult{Orig: handler.Filename, Dest: destFile})
+	default:
+		// none received
 	}
-	waitgroup.Wait()
 
 	log.Printf("Results: %+v", results)
 
-	resp := marshal.Response{
+	resp = marshal.Response{
 		Message: "Files saved",
 		Context: marshal.ResponseContext{"Use S3", fmt.Sprint(use_s3)},
 		Results: results,

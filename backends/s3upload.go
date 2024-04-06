@@ -70,7 +70,6 @@ func PutToS3(respChan chan marshal.Response, multipartFile multipart.File, destF
 		respChan <- resp
 		return
 	}
-	respChan <- marshal.RESP_OK
 	log.Printf("S3 upload #%d finished: %s", idx+1, destFilename)
 }
 
