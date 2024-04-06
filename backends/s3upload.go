@@ -28,6 +28,12 @@ var (
 	uploadACL   string
 )
 
+// Generate a new filename based on UUID4 + the original file extension
+func GenUuidFilename(origFilename string) string {
+	uuidFilename := uuid.New().String() + filepath.Ext(origFilename)
+	return uuidFilename
+}
+
 // Upload to S3 bucket
 func PutToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename string) (string, error) {
 	sess, err := session.NewSession(&aws.Config{
@@ -45,7 +51,7 @@ func PutToS3(w http.ResponseWriter, multipartFile multipart.File, origFilename s
 	}
 
 	svc := s3.New(sess)
-	uuidFilename := uploadDir + uuid.New().String() + filepath.Ext(origFilename)
+	uuidFilename := uploadDir + GenUuidFilename(origFilename)
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
