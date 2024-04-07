@@ -66,11 +66,11 @@ func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFi
 			Context: marshal.ResponseContext{destFilename, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
-		log.Printf("%d_ Failed to upload file to S3 bucket: %s -> %s\n", idx, destFilename, awsS3Bucket)
+		log.Printf("_%d_ Failed to upload file to S3 bucket: %s -> %s\n", idx, destFilename, awsS3Bucket)
 		errChan <- resp
 		return
 	}
-	log.Printf("%d_ S3 upload finished: %s", idx, destFilename)
+	log.Printf("_%d_ S3 upload finished: %s", idx, destFilename)
 }
 
 // only called once
