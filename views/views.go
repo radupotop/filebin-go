@@ -43,8 +43,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Will store list of results
 	var results marshal.ResponseResults
-	errChan := make(chan marshal.Response)
-	// var errChan chan marshal.Response
+	// Use a buffered channel
+	errChan := make(chan marshal.Response, len(files))
+	log.Printf("Received %d files\n", len(files))
 
 	// Iterate over each uploaded file
 	for idx, handler := range files {
