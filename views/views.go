@@ -40,12 +40,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the map of uploaded files
 	files := r.MultipartForm.File["files"]
 	use_s3 := r.FormValue("s3") == "on"
+	num_files := len(files)
 
 	// Will store list of results
 	var results marshal.ResponseResults
 	// Use a buffered channel
-	errChan := make(chan marshal.Response, len(files))
-	log.Printf("Received %d files\n", len(files))
+	errChan := make(chan marshal.Response, num_files)
+	log.Printf("Received %d files\n", num_files)
 
 	// Iterate over each uploaded file
 	for idx, handler := range files {
@@ -72,7 +73,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if use_s3 {
 			destFile = backends.GenUuidFilename(handler.Filename)
 			waitgroup.Add(1)
-			go backends.PutToS3(errChan, file, destFile, &waitgroup, idx)
+			go backends.PutToS3(errChan, file, destFile, &waitgroup, idx+1)
 		} else {
 			destFile, err = backends.CopyFileTemp(w, file)
 			if err != nil {
