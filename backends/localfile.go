@@ -63,7 +63,7 @@ func CheckFile(handler *multipart.FileHeader) (marshal.Response, error) {
 	}
 
 	// Check file mime type
-	mimeType := handler.Header["Content-Type"][0]
+	mimeType := handler.Header.Get("Content-Type")
 	if !slices.Contains(ALLOWED_MIME_TYPES, mimeType) {
 		resp := marshal.Response{
 			Message: "File type not allowed",
