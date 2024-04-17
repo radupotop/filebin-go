@@ -8,11 +8,21 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 	"slices"
 
 	"github.com/radupotop/filebin-go/marshal"
 )
+
+/*
+MAGIC NUMBERS    https://en.m.wikipedia.org/wiki/List_of_file_signatures
+
+PNG := []byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}
+JPEG := []byte{0xff, 0xd8, 0xff}
+GIF87a := []byte{0x47, 0x49, 0x46, 0x38, 0x37, 0x61}
+GIF89a := []byte{0x47, 0x49, 0x46, 0x38, 0x39, 0x61}
+
+http.DetectContentType(PNG)
+*/
 
 const (
 	// 320 KiB max file size
@@ -20,7 +30,7 @@ const (
 )
 
 var (
-	ALLOWED_EXTENSIONS = []string{".png", ".jpg", ".jpeg", ".gif"}
+	ALLOWED_MIME_TYPES = []string{"image/jpeg", "image/png", "image/gif"}
 	FILE_SIZE_UNIT     = math.Pow(1024, 2) // MiB
 	FS_UNIT_NAME       = "MiB"
 )
@@ -52,19 +62,21 @@ func CheckFile(handler *multipart.FileHeader) (marshal.Response, error) {
 		return resp, fmt.Errorf("file size %d exceeds the limit: %d bytes", handler.Size, MAX_FILE_SIZE)
 	}
 
-	// Check file extension
-	extension := filepath.Ext(handler.Filename)
-	if !slices.Contains(ALLOWED_EXTENSIONS, extension) {
+	// Check file mime type
+	mimeType := handler.Header["Content-Type"][0]
+	if !slices.Contains(ALLOWED_MIME_TYPES, mimeType) {
 		resp := marshal.Response{
-			Message: "File extension not allowed",
+			Message: "File type not allowed",
 			Context: marshal.ResponseContext{
 				handler.Filename,
 				"Must be one of",
-				fmt.Sprint(ALLOWED_EXTENSIONS),
+				fmt.Sprint(ALLOWED_MIME_TYPES),
+				"Instead detected",
+				mimeType,
 			},
 			Status: http.StatusUnsupportedMediaType,
 		}
-		return resp, fmt.Errorf("file extension not allowed: %s", extension)
+		return resp, fmt.Errorf("file type not allowed: %s", mimeType)
 	}
 
 	return marshal.RESP_OK, nil
