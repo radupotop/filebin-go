@@ -16,16 +16,15 @@ func TestCheckFileShouldError(t *testing.T) {
 	resp, err := backends.CheckFile(fileHeader)
 	if err == nil ||
 		resp.IsError() == false ||
-		resp.Message != "File extension not allowed" {
+		resp.Message != "File type not allowed" {
 		t.Error("Test Failed")
 	}
 }
 
 func TestCheckFileAllowed(t *testing.T) {
-	content := []byte("Hello world")
-	fileName := "hello.jpg"
-
-	fileHeader := MockMultipartFileHeader(t, fileName, content)
+	pngsig := []byte("\x89PNG\x0D\x0A\x1A\x0A")
+	fileName := "demo.png"
+	fileHeader := MockMultipartFileHeader(t, fileName, pngsig)
 
 	// must not error
 	resp, err := backends.CheckFile(fileHeader)
