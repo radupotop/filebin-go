@@ -61,13 +61,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		resp, err = backends.CheckFile(handler)
-		if err != nil {
-			log.Println(err)
-			resp.ReturnJson(w)
-			return
-		}
-		resp, err = backends.CheckMimeMatches(handler, file)
+		resp, err = backends.CheckFile(handler, file)
 		if err != nil {
 			log.Println(err)
 			resp.ReturnJson(w)
