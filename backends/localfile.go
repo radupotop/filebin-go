@@ -5,9 +5,11 @@ import (
 	"io"
 	"log"
 	"math"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/radupotop/filebin-go/marshal"
@@ -80,6 +82,37 @@ func CheckFile(handler *multipart.FileHeader) (marshal.Response, error) {
 	}
 
 	return marshal.RESP_OK, nil
+}
+
+// Check if the Mime type is the same across HTTP header, file extension and actual file content
+func CheckMimeMatches(handler *multipart.FileHeader, file multipart.File) (marshal.Response, error) {
+
+	// Only read the first 512 bytes to detect mime type.
+	buf := make([]byte, 512)
+	file.Read(buf)
+
+	// Mime type by HTTP header
+	mimeByHeader := handler.Header.Get("Content-Type")
+	// Mime type by file extension
+	mimeByExt := mime.TypeByExtension(filepath.Ext(handler.Filename))
+	// Mime type by detection of magic numbers
+	mimeByMagic := http.DetectContentType(buf)
+
+	if mimeByHeader == mimeByExt && mimeByExt == mimeByMagic {
+		return marshal.RESP_OK, nil
+	} else {
+		resp := marshal.Response{
+			Message: "Mime type mismatch",
+			Context: marshal.ResponseContext{
+				"All must match",
+				mimeByHeader,
+				mimeByExt,
+				mimeByMagic,
+			},
+			Status: http.StatusUnsupportedMediaType,
+		}
+		return resp, fmt.Errorf("mime type mismatch")
+	}
 }
 
 func CopyFileTemp(w http.ResponseWriter, file multipart.File) (string, error) {

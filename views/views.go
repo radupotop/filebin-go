@@ -67,6 +67,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			resp.ReturnJson(w)
 			return
 		}
+		resp, err = backends.CheckMimeMatches(handler, file)
+		if err != nil {
+			log.Println(err)
+			resp.ReturnJson(w)
+			return
+		}
 
 		var destFile string
 		// Continue to S3 upload
