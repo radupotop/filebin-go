@@ -25,8 +25,8 @@ http.DetectContentType(PNG)
 */
 
 const (
-	// 320 KiB max file size
-	MAX_FILE_SIZE = 10 << 15
+	// 2.5 MiB max file size
+	MAX_FILE_SIZE = 10 << 18
 )
 
 var (
