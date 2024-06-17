@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/radupotop/filebin-go/backends"
+	"github.com/radupotop/filebin-go/pkg/backends"
 )
 
 func TestCheckFileShouldError(t *testing.T) {

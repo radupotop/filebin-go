@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/radupotop/filebin-go/backends"
-	"github.com/radupotop/filebin-go/marshal"
+	"github.com/radupotop/filebin-go/pkg/backends"
+	"github.com/radupotop/filebin-go/pkg/marshal"
 )
 
 const (

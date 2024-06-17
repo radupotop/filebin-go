@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/radupotop/filebin-go/views"
+	"github.com/radupotop/filebin-go/pkg/views"
 )
 
 func main() {

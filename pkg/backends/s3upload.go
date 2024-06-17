@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/subosito/gotenv"
 
-	"github.com/radupotop/filebin-go/marshal"
+	"github.com/radupotop/filebin-go/pkg/marshal"
 )
 
 var (

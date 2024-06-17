@@ -10,7 +10,7 @@ import (
 	"os"
 	"slices"
 
-	"github.com/radupotop/filebin-go/marshal"
+	"github.com/radupotop/filebin-go/pkg/marshal"
 )
 
 /*
