@@ -5,6 +5,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sync"
@@ -30,6 +31,17 @@ var (
 // Generate a new filename based on UUID4 + the original file extension
 func GenUuidFilename(origFilename string) string {
 	return uploadDir + uuid.New().String() + filepath.Ext(origFilename)
+}
+
+// Generate AWS URL to the file.
+// https://BUCKET.s3.REGION.amazonaws.com/folder/file.ext
+func GenFileURL(filename string) string {
+	_url := &url.URL{
+		Scheme: "https",
+		Host:   awsS3Bucket + ".s3." + awsRegion + ".amazonaws.com",
+		Path:   "/" + filename,
+	}
+	return _url.String()
 }
 
 // Upload to S3 bucket
