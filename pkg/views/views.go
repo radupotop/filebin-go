@@ -49,9 +49,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received %d files\n", num_files)
 
 	// Iterate over each uploaded file
-	for idx, handler := range files {
+	for idx, header := range files {
 		// Open the uploaded file
-		file, err := handler.Open()
+		file, err := header.Open()
 		mimeType := backends.GetContentType(file)
 
 		if err != nil {
@@ -62,7 +62,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		resp, err = backends.CheckFile(handler, file, mimeType)
+		resp, err = backends.CheckFile(header, file, mimeType)
 		if err != nil {
 			log.Println(err)
 			resp.ReturnJson(w)
@@ -72,7 +72,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		var destFile string
 		// Continue to S3 upload
 		if use_s3 {
-			destFile = backends.GenUuidFilename(handler.Filename)
+			destFile = backends.GenUuidFilename(header.Filename)
 			waitgroup.Add(1)
 			go backends.PutToS3(errChan, file, destFile, mimeType, &waitgroup, idx+1)
 		} else {
@@ -82,7 +82,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		upres := marshal.UpResult{Orig: handler.Filename, Dest: destFile, MimeType: mimeType}
+		upres := marshal.UpResult{Orig: header.Filename, Dest: destFile, MimeType: mimeType}
 		results = append(results, upres)
 	}
 	waitgroup.Wait()

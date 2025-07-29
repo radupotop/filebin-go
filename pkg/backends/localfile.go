@@ -47,26 +47,26 @@ func ReadFile(filename string) (string, error) {
 }
 
 // Check if pre-conditions are met for upload
-func CheckFile(handler *multipart.FileHeader, file multipart.File, mimeType string) (marshal.Response, error) {
+func CheckFile(header *multipart.FileHeader, file multipart.File, mimeType string) (marshal.Response, error) {
 	// Check file size
-	if handler.Size > MAX_FILE_SIZE {
+	if header.Size > MAX_FILE_SIZE {
 		resp := marshal.Response{
 			Message: "File size exceeds the limit",
 			Context: marshal.ResponseContext{
-				handler.Filename,
+				header.Filename,
 				"Max file size must be",
 				fmt.Sprintf("%.2f %s", MAX_FILE_SIZE/FILE_SIZE_UNIT, FS_UNIT_NAME),
 			},
 			Status: http.StatusRequestEntityTooLarge,
 		}
-		return resp, fmt.Errorf("file size %d exceeds the limit: %d bytes", handler.Size, MAX_FILE_SIZE)
+		return resp, fmt.Errorf("file size %d exceeds the limit: %d bytes", header.Size, MAX_FILE_SIZE)
 	}
 
 	if !slices.Contains(ALLOWED_MIME_TYPES, mimeType) {
 		resp := marshal.Response{
 			Message: "File type not allowed",
 			Context: marshal.ResponseContext{
-				handler.Filename,
+				header.Filename,
 				"Must be one of",
 				fmt.Sprint(ALLOWED_MIME_TYPES),
 				"Instead detected",
