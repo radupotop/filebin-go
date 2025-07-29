@@ -51,6 +51,7 @@ func ReadFile(filename string) (string, error) {
 func GetContentType(file multipart.File) string {
 	buf := make([]byte, 512)
 	file.Read(buf)
+	file.Seek(0, io.SeekStart)
 	mimeType := http.DetectContentType(buf)
 	return mimeType
 }
