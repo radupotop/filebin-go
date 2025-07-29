@@ -33,7 +33,7 @@ func GenUuidFilename(origFilename string) string {
 }
 
 // Upload to S3 bucket
-func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFilename string, waitgroup *sync.WaitGroup, idx int) {
+func PutToS3(errChan chan marshal.Response, srcFile multipart.File, destFilename string, mimeType string, waitgroup *sync.WaitGroup, idx int) {
 
 	defer waitgroup.Done()
 
@@ -57,9 +57,9 @@ func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFi
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
 		ACL:         aws.String(uploadACL),
-		Body:        multipartFile,
+		Body:        srcFile,
 		Bucket:      aws.String(awsS3Bucket),
-		ContentType: aws.String(GetContentType(multipartFile)),
+		ContentType: aws.String(mimeType),
 		Key:         aws.String(destFilename),
 	})
 	if err != nil {

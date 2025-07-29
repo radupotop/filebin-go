@@ -52,6 +52,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	for idx, handler := range files {
 		// Open the uploaded file
 		file, err := handler.Open()
+		mimeType := backends.GetContentType(file)
 
 		if err != nil {
 			log.Println(err)
@@ -61,7 +62,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		resp, err = backends.CheckFile(handler, file)
+		resp, err = backends.CheckFile(handler, file, mimeType)
 		if err != nil {
 			log.Println(err)
 			resp.ReturnJson(w)
@@ -73,7 +74,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if use_s3 {
 			destFile = backends.GenUuidFilename(handler.Filename)
 			waitgroup.Add(1)
-			go backends.PutToS3(errChan, file, destFile, &waitgroup, idx+1)
+			go backends.PutToS3(errChan, file, destFile, mimeType, &waitgroup, idx+1)
 		} else {
 			destFile, err = backends.CopyFileTemp(w, file)
 			if err != nil {
@@ -81,7 +82,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		results = append(results, marshal.UpResult{Orig: handler.Filename, Dest: destFile})
+		upres := marshal.UpResult{Orig: handler.Filename, Dest: destFile, MimeType: mimeType}
+		results = append(results, upres)
 	}
 	waitgroup.Wait()
 	// Channel must be closed, or the range loop will block

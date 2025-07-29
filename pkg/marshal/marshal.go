@@ -32,8 +32,9 @@ func (r *Response) IsError() bool {
 
 // Individual upload result
 type UpResult struct {
-	Orig string `json:"orig"`
-	Dest string `json:"dest"`
+	Orig     string `json:"orig"`
+	Dest     string `json:"dest"`
+	MimeType string `json:"mimetype"`
 }
 
 // // All results
