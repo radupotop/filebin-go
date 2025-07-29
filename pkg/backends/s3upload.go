@@ -19,6 +19,7 @@ import (
 	"github.com/radupotop/filebin-go/pkg/marshal"
 )
 
+// If your bucket uses the bucket owner enforced setting for Object Ownership, ACLs are disabled and no longer affect permissions. All objects written to the bucket by any account will be owned by the bucket owner.
 var (
 	awsRegion   string
 	awsS3Bucket string
