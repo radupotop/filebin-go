@@ -46,16 +46,6 @@ func ReadFile(filename string) (string, error) {
 	return string(content), nil
 }
 
-// Get mime-type by detection of magic numbers.
-// Only read the first 512 bytes to detect mime-type.
-func GetContentType(file multipart.File) string {
-	buf := make([]byte, 512)
-	file.Read(buf)
-	file.Seek(0, io.SeekStart)
-	mimeType := http.DetectContentType(buf)
-	return mimeType
-}
-
 // Check if pre-conditions are met for upload
 func CheckFile(handler *multipart.FileHeader, file multipart.File) (marshal.Response, error) {
 	// Check file size
