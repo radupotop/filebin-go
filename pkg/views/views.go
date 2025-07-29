@@ -73,7 +73,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		// Continue to S3 upload
 		if use_s3 {
 			destKey := backends.GenUuidFilename(header.Filename)
-			destFile = backends.GenFileURL(destKey)
+			destFile = backends.GenPublicFileURL(destKey)
 			waitgroup.Add(1)
 			go backends.PutToS3(errChan, file, destKey, mimeType, &waitgroup, idx+1)
 		} else {

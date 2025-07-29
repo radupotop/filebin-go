@@ -35,7 +35,7 @@ func GenUuidFilename(origFilename string) string {
 
 // Generate AWS URL to the file.
 // https://BUCKET.s3.REGION.amazonaws.com/folder/file.ext
-func GenFileURL(filename string) string {
+func GenPublicFileURL(filename string) string {
 	_url := &url.URL{
 		Scheme: "https",
 		Host:   awsS3Bucket + ".s3." + awsRegion + ".amazonaws.com",
