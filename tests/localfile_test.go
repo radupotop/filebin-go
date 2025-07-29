@@ -12,10 +12,11 @@ func TestCheckFileShouldError(t *testing.T) {
 
 	fileHeader := MockMultipartFileHeader(t, fileName, content)
 	file, _ := fileHeader.Open()
+	mimeType := backends.GetContentType(file)
 	defer file.Close()
 
 	// must error
-	resp, err := backends.CheckFile(fileHeader, file)
+	resp, err := backends.CheckFile(fileHeader, file, mimeType)
 	if err == nil ||
 		resp.IsError() == false ||
 		resp.Message != "File type not allowed" {
@@ -28,10 +29,11 @@ func TestCheckFileAllowed(t *testing.T) {
 	fileName := "demo.png"
 	fileHeader := MockMultipartFileHeader(t, fileName, pngsig)
 	file, _ := fileHeader.Open()
+	mimeType := backends.GetContentType(file)
 	defer file.Close()
 
 	// must not error
-	resp, err := backends.CheckFile(fileHeader, file)
+	resp, err := backends.CheckFile(fileHeader, file, mimeType)
 	if err != nil || resp.IsError() {
 		t.Error("Check failed")
 	}
