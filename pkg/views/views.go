@@ -84,15 +84,19 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		results = append(results, marshal.UpResult{Orig: handler.Filename, Dest: destFile})
 	}
 	waitgroup.Wait()
+	// Channel must be closed, or the range loop will block
+	close(errChan)
 
-	select {
-	case resp = <-errChan:
+	if len(errChan) > 0 {
+		log.Printf("ErrChan queue: %d", len(errChan))
+	}
+
+	// Only the first error will be returned via the API
+	for resp := range errChan {
 		if resp.IsError() {
 			resp.ReturnJson(w)
 			return
 		}
-	default:
-		// none received
 	}
 
 	log.Printf("Results: %+v", results)
