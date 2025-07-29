@@ -39,13 +39,13 @@ func GenFileURL(filename string) string {
 	_url := &url.URL{
 		Scheme: "https",
 		Host:   awsS3Bucket + ".s3." + awsRegion + ".amazonaws.com",
-		Path:   "/" + filename,
+		Path:   filename,
 	}
 	return _url.String()
 }
 
 // Upload to S3 bucket
-func PutToS3(errChan chan marshal.Response, srcFile multipart.File, destFilename string, mimeType string, waitgroup *sync.WaitGroup, idx int) {
+func PutToS3(errChan chan marshal.Response, srcFile multipart.File, destKey string, mimeType string, waitgroup *sync.WaitGroup, idx int) {
 
 	defer waitgroup.Done()
 
@@ -72,19 +72,19 @@ func PutToS3(errChan chan marshal.Response, srcFile multipart.File, destFilename
 		Body:        srcFile,
 		Bucket:      aws.String(awsS3Bucket),
 		ContentType: aws.String(mimeType),
-		Key:         aws.String(destFilename),
+		Key:         aws.String(destKey),
 	})
 	if err != nil {
 		resp := marshal.Response{
 			Message: "Failed to upload file to S3 bucket",
-			Context: marshal.ResponseContext{destFilename, awsS3Bucket, uploadACL},
+			Context: marshal.ResponseContext{destKey, awsS3Bucket, uploadACL},
 			Status:  http.StatusInternalServerError,
 		}
-		log.Printf("_%d_ Failed to upload file to S3 bucket: %s -> %s\n", idx, destFilename, awsS3Bucket)
+		log.Printf("_%d_ Failed to upload file to S3 bucket: %s -> %s\n", idx, destKey, awsS3Bucket)
 		errChan <- resp
 		return
 	}
-	log.Printf("_%d_ S3 upload finished: %s", idx, destFilename)
+	log.Printf("_%d_ S3 upload finished: %s", idx, destKey)
 }
 
 // only called once
