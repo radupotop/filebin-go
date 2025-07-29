@@ -56,10 +56,11 @@ func PutToS3(errChan chan marshal.Response, multipartFile multipart.File, destFi
 
 	// Upload file to S3 bucket
 	_, err = svc.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(awsS3Bucket),
-		Key:    aws.String(destFilename),
-		Body:   multipartFile,
-		ACL:    aws.String(uploadACL),
+		ACL:         aws.String(uploadACL),
+		Body:        multipartFile,
+		Bucket:      aws.String(awsS3Bucket),
+		ContentType: aws.String(GetContentType(multipartFile)),
+		Key:         aws.String(destFilename),
 	})
 	if err != nil {
 		resp := marshal.Response{

@@ -46,6 +46,15 @@ func ReadFile(filename string) (string, error) {
 	return string(content), nil
 }
 
+// Get mime-type by detection of magic numbers.
+// Only read the first 512 bytes to detect mime-type.
+func GetContentType(file multipart.File) string {
+	buf := make([]byte, 512)
+	file.Read(buf)
+	mimeType := http.DetectContentType(buf)
+	return mimeType
+}
+
 // Check if pre-conditions are met for upload
 func CheckFile(handler *multipart.FileHeader, file multipart.File) (marshal.Response, error) {
 	// Check file size
@@ -63,13 +72,8 @@ func CheckFile(handler *multipart.FileHeader, file multipart.File) (marshal.Resp
 	}
 
 	// Check if mime-type is allowed
+	mimeType := GetContentType(file)
 
-	// Only read the first 512 bytes to detect mime-type
-	buf := make([]byte, 512)
-	file.Read(buf)
-
-	// Get mime-type by detection of magic numbers
-	mimeType := http.DetectContentType(buf)
 	if !slices.Contains(ALLOWED_MIME_TYPES, mimeType) {
 		resp := marshal.Response{
 			Message: "File type not allowed",
