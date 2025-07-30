@@ -16,7 +16,7 @@ func TestCheckFileShouldError(t *testing.T) {
 	defer file.Close()
 
 	// must error
-	resp, err := backends.CheckFile(fileHeader, file, mimeType)
+	resp, err := backends.CheckFile(fileHeader, mimeType)
 	if err == nil ||
 		resp.IsError() == false ||
 		resp.Message != "File type not allowed" {
@@ -33,7 +33,7 @@ func TestCheckFileAllowed(t *testing.T) {
 	defer file.Close()
 
 	// must not error
-	resp, err := backends.CheckFile(fileHeader, file, mimeType)
+	resp, err := backends.CheckFile(fileHeader, mimeType)
 	if err != nil || resp.IsError() {
 		t.Error("Check failed")
 	}

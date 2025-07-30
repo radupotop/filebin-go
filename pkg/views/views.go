@@ -62,7 +62,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		resp, err = backends.CheckFile(header, file, mimeType)
+		resp, err = backends.CheckFile(header, mimeType)
 		if err != nil {
 			log.Println(err)
 			resp.ReturnJson(w)

@@ -24,7 +24,7 @@ func ReadFile(filename string) (string, error) {
 }
 
 // Check if pre-conditions are met for upload
-func CheckFile(header *multipart.FileHeader, file multipart.File, mimeType string) (marshal.Response, error) {
+func CheckFile(header *multipart.FileHeader, mimeType string) (marshal.Response, error) {
 	// Check file size
 	if header.Size > MAX_FILE_SIZE {
 		resp := marshal.Response{
