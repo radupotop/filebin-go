@@ -52,7 +52,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	for idx, header := range files {
 		// Open the uploaded file
 		file, err := header.Open()
-		mimeType := backends.GetContentType(file)
 
 		if err != nil {
 			log.Println(err)
@@ -62,6 +61,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
+		mimeType := backends.GetContentType(file)
 		resp, err = backends.CheckFile(header, mimeType)
 		if err != nil {
 			log.Println(err)
